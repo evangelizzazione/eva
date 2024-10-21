@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scannerizza QR Code</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+    <h1>Scannerizza QR Code</h1>
+    <div id="reader" style="width: 300px;"></div>
+    <a href="index.html">torna alla pagina iniziale</a>
+    <div id="qrCodeContainer"></div>
+
+    <script>
+
+        const html5QrCode = new Html5Qrcode("reader");
+
+        const config = { fps: 10, qrbox: 250 };
+        var id = ""
+
+        async function control(id) {
+            const response = await fetch('/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            var data = await response.json();
+            if (data.message == "userproblem") {
+                document.getElementById("qrCodeContainer").innerHTML =
+                 '<div id="problem"><h3>Utente non verificato!</h3></div>'; return false}
+            else if (data.message == "usercomplite") {document.getElementById('qrCodeContainer').innerHTML = 
+            "<div id='notprob'><h3>Utente verificato con successo!</h3></div>"; return true
+            };
+        }
+        var nextid = ""
+            html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                (decodedText, decodedResult) => {
+                    if (nextid != decodedText)
+                    {
+                        nextid = decodedText;
+                        console.log(`QR Code riconosciuto: ${decodedText}`);
+                        control(decodedText);
+                    }
+                },
+                (errorMessage) => {
+                }
+            ).catch(err => {
+                console.error(`Errore avviando il lettore QR: ${err}`);
+            });
+            console.log(id);
+
+    </script>
+</body>
+</html>

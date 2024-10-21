@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Registro Presenze QR Code</title>
+</head>
+<body>
+    <h1>Registrati per ottenere il codice QR</h1>
+    <a href="accedi.html">se sei già registrato/a, clicca qui per accedere</a>
+    <form id="registerForm">
+        <div>
+            <input type="text" name="name" placeholder="Nome" required>
+            <input type="text" name="surname" placeholder="Cognome" required>
+        </div>
+        <div>
+            <input type="text" name="email" placeholder="email" required>
+            <input type="text" name="provenienza" placeholder="provenienza" required>
+        </div> 
+        <button type="submit">Registrati</button>
+    </form>
+    <div id="qrCodeContainer"></div>
+
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = e.target.name.value;
+            const surname = e.target.surname.value;
+            const email = e.target.email.value;
+            const provenienza = e.target.provenienza.value;
+
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, surname, email, provenienza, Acces: false })
+            });
+            var data = await response.json();
+            if (data.message == "admin") {document.getElementById("qrCodeContainer").innerHTML = '<a href="admin.html">admin page</a>';}
+            else if (data.message == "userproblem") {document.getElementById("qrCodeContainer").innerHTML = '<p>email già registrata</p>';}
+            else if (data.message == "userDelated") {document.getElementById("qrCodeContainer").innerHTML = '<p>tutti gli utenti sono stati eliminati dal database</p>';}
+            else if (data.message == "usercomplite") {document.getElementById('qrCodeContainer').innerHTML = `<p>questo codice è da far scannerizzare, non lo perdere!</p><img src="${data.qrCode}" alt="QR Code">`;
+            }
+        });
+
+        /*
+        document.getElementById('scanForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = e.target.id.value;
+
+            await fetch('/scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            alert('Presenza registrata!');
+        });
+        */
+    </script>
+</body>
+</html>
